@@ -1,3 +1,6 @@
 archive/
 vgg16_classes.txt
 .DS_Store
+__pycache__/
+dataset/
+split-data/
