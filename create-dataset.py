@@ -150,5 +150,5 @@ class create_DeepFashion:
 if __name__ == "__main__":
     current_path = os.getcwd()
     df = create_DeepFashion(current_path)
-    X = 200  # Set the maximum number of elements per category
+    X = 100  # Set the maximum number of elements per category
     df.read_imgs_and_split(X)
