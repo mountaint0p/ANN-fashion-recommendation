@@ -1,6 +1,6 @@
 """
 This script reads the Category and Attribute Prediction Benchmark from the DeepFashion dataset and splits the data into train/val/test groups and saves the img_path, bbox vector, category vector,
-attribute vector for each image in all the 3 groups. It processes only 1/10 of the images.
+attribute vector for each image in all the 3 groups. 
 """
 import os
 import numpy as np
@@ -37,7 +37,7 @@ class create_DeepFashion:
         self.list_category_cloth = os.path.join(self.anno_dir, list_category_cloth_file)
         self.list_bbox = os.path.join(self.anno_dir, list_bbox_file)
 
-    def read_imgs_and_split(self):
+    def read_imgs_and_split(self, X):
         # Declaring the names of the CSVs where the split data would be stored
         train_file = "train.csv"
         val_file = "val.csv"
@@ -68,13 +68,10 @@ class create_DeepFashion:
             # Read each line and split the words and store the data
             for line in f:
                 count += 1
-                if count % 5 != 1:
-                    continue
                 words = line.split()
                 image_to_category[words[0].strip()] = int(words[1].strip())
 
-                # Print progress after every 500 iterations
-                if count % 500 == 1:
+                if count % 50000 == 0:
                     print(f"Processed {count} lines in image_to_category mapping.")
 
         # Read in the image to bbox mapping
@@ -87,15 +84,16 @@ class create_DeepFashion:
             # Read each line and split the words and store the data
             for line in f:
                 count += 1
-                if count % 5 != 1:
-                    continue
                 words = line.split()
                 data = (words[1], words[2], words[3], words[4])
                 image_to_bbox[words[0]] = data
 
-                # Print progress after every 500 iterations
-                if count % 500 == 1:
+                # Print progress after every 50000 iterations
+                if count % 50000 == 0:
                     print(f"Processed {count} lines in image_to_bbox mapping.")
+
+        # Initialize the list to collect all data
+        data_list = []
 
         # Read in the images
         with open(self.list_eval_partition) as f:
@@ -105,29 +103,42 @@ class create_DeepFashion:
             count = 0
             for line in f:
                 count += 1
-                if count % 5 != 1:
-                    continue
                 words = line.split()
                 img = words[0].strip()
                 category_idx = image_to_category[img]
                 category = str(category_to_name[category_idx - 1])
                 bbox = np.asarray(image_to_bbox[img], dtype=np.int16)
+                partition = words[1].strip()
 
-                # Divide and save the data into train/val/test dataframes
-                if words[1].strip() == "train":
-                    self.train = pd.concat([self.train, pd.DataFrame([{"img_path": img, "bbox": bbox, "category": category}])], ignore_index=True)
-                if words[1].strip() == "val":
-                    self.val = pd.concat([self.val, pd.DataFrame([{"img_path": img, "bbox": bbox, "category": category}])], ignore_index=True)
-                if words[1].strip() == "test":
-                    self.test = pd.concat([self.test, pd.DataFrame([{"img_path": img, "bbox": bbox, "category": category}])], ignore_index=True)
+                data = {"img_path": img, "bbox": bbox, "category": category, "partition": partition}
+                data_list.append(data)
 
-                # Print progress after every 500 iterations
-                if count % 500 == 1:
+                # Print progress after every 50000 iterations
+                if count % 50000 == 0:
                     print(f"Processed {count} lines in image processing.")
 
-            print("Training images", int(self.train.shape[0]))
-            print("Validation images", int(self.val.shape[0]))
-            print("Test images", int(self.test.shape[0]))
+            print("Total images", len(data_list))
+
+        # Create dataframe from data_list
+        df_all = pd.DataFrame(data_list)
+
+        # Limit the number of images per category per partition
+        def sample_group(group):
+            if len(group) > X:
+                return group.sample(n=X, random_state=42)
+            else:
+                return group
+
+        df_sampled = df_all.groupby(['partition', 'category'], group_keys=False).apply(sample_group)
+
+        # Split into train, val, test
+        self.train = df_sampled[df_sampled['partition'] == 'train'].drop('partition', axis=1)
+        self.val = df_sampled[df_sampled['partition'] == 'val'].drop('partition', axis=1)
+        self.test = df_sampled[df_sampled['partition'] == 'test'].drop('partition', axis=1)
+
+        print("Training images", int(self.train.shape[0]))
+        print("Validation images", int(self.val.shape[0]))
+        print("Test images", int(self.test.shape[0]))
 
         # Store the data structures
         self.train.to_csv(self.path + "/split-data/train_new.csv", index=False)
@@ -139,4 +150,5 @@ class create_DeepFashion:
 if __name__ == "__main__":
     current_path = os.getcwd()
     df = create_DeepFashion(current_path)
-    df.read_imgs_and_split()
+    X = 200  # Set the maximum number of elements per category
+    df.read_imgs_and_split(X)
