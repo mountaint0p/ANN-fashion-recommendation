@@ -20,6 +20,11 @@ This GitHub repo implements a fashion recommnedation system. To summarize, we cr
 - **model.ipynb**: Sets up, trains, and tests the clothing categorization CNN model. The weights of this model can be found in
   model-data/model.h5
 
+## Blog Figures
+
+For our article, we used various stiches of images within our dataset. We created these images using the
+PIL library. This code can be found in the embeddings.ipynb file.
+
 ## Sources
 
 - **Dataset:** [DeepFashion](https://mmlab.ie.cuhk.edu.hk/projects/DeepFashion.html)
