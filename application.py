@@ -63,7 +63,7 @@ def getRecommendations(queryFeatures, index, paths):
 st.title("Fashion Recommendation Demo")
 
 # Upload image
-uploadedFile = st.file_uploader("Upload an image of clothing", type=["jpg", "jpeg", "png"])
+uploadedFile = st.file_uploader("Upload an outfit picture for some recommendations!", type=["jpg", "jpeg", "png"])
 
 if uploadedFile is not None:
     # Display the inputted image
