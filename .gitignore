@@ -3,4 +3,7 @@ vgg16_classes.txt
 .DS_Store
 __pycache__/
 dataset/
-split-data/
+faiss_inputs.npy
+test_new.csv
+train_new.csv
+val_new.csv

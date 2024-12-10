@@ -1,6 +1,6 @@
 """
-This script reads the Category and Attribute Prediction Benchmark from the DeepFashion dataset and splits the data into train/val/test groups and saves the img_path, bbox vector, category vector,
-attribute vector for each image in all the 3 groups. 
+NOTE: This script is based on the script of the same name from the following github repository:
+https://github.com/imshreyshah/Clothing-Category-Prediction-DeepFashion
 """
 import os
 import numpy as np
@@ -10,7 +10,6 @@ import pandas as pd
 class create_DeepFashion:
 
     def __init__(self, dataset_path):
-
         # The constants
         img_folder_name = "dataset/img"
         eval_folder_name = "dataset/Eval"
@@ -38,11 +37,6 @@ class create_DeepFashion:
         self.list_bbox = os.path.join(self.anno_dir, list_bbox_file)
 
     def read_imgs_and_split(self, X):
-        # Declaring the names of the CSVs where the split data would be stored
-        train_file = "train.csv"
-        val_file = "val.csv"
-        test_file = "test.csv"
-
         # Read in the category index to category name mapping from the DeepFashion dataset
         category_to_name = {}
 
@@ -70,7 +64,7 @@ class create_DeepFashion:
                 count += 1
                 words = line.split()
                 image_to_category[words[0].strip()] = int(words[1].strip())
-
+                # Print progress after every 50000 iterations
                 if count % 50000 == 0:
                     print(f"Processed {count} lines in image_to_category mapping.")
 
@@ -122,7 +116,7 @@ class create_DeepFashion:
         # Create dataframe from data_list
         df_all = pd.DataFrame(data_list)
 
-        # Limit the number of images per category per partition
+        # Limit the number of images per category to X
         def sample_group(group):
             if len(group) > X:
                 return group.sample(n=X, random_state=42)
@@ -140,7 +134,7 @@ class create_DeepFashion:
         print("Validation images", int(self.val.shape[0]))
         print("Test images", int(self.test.shape[0]))
 
-        # Store the data structures
+        # Store to csv 
         self.train.to_csv(self.path + "/split-data/train_new.csv", index=False)
         self.val.to_csv(self.path + "/split-data/val_new.csv", index=False)
         self.test.to_csv(self.path + "/split-data/test_new.csv", index=False)
@@ -150,5 +144,5 @@ class create_DeepFashion:
 if __name__ == "__main__":
     current_path = os.getcwd()
     df = create_DeepFashion(current_path)
-    X = 100  # Set the maximum number of elements per category
+    X = 500 
     df.read_imgs_and_split(X)
