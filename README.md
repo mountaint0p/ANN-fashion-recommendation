@@ -6,7 +6,7 @@ If you want to read more about this project, check out the following [Medium art
 
 ## Summary
 
-This GitHub repo implements a fashion recommnedation system. Here
+This GitHub repo implements a fashion recommnedation system. To summarize, we created a CNN model to categorize clothing types, used the model for feature extraction and created a large embedding space of a diverse set of clothing, then use KNN for an inputted clothing image on this embedding space to make fashion recommendations.  
 
 ## File Layout
 
